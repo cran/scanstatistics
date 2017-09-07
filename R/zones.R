@@ -83,8 +83,6 @@ dist_to_knn <- function(x, k = min(10, nrow(x))) {
 #'    as locations. The first element of each row is the integer encoding the
 #'    location (and equal to the row number); the following elements are the 
 #'    \eqn{k-1} nearest neighbors in ascending order of distance.
-#' @inheritParams plyr::alply
-#' @importFrom sets set_union
 #' @importFrom plyr alply
 #' @importFrom magrittr %>%
 #' @return A list of integer vectors.
@@ -97,30 +95,30 @@ dist_to_knn <- function(x, k = min(10, nrow(x))) {
 #'                5L, 3L, 4L, 2L, 1L),
 #'                ncol = 5, byrow = TRUE)
 #' knn_zones(nn[, 1:3])
-knn_zones <- function(k_nearest, .parallel = FALSE, .paropts = NULL) {
+knn_zones <- function(k_nearest) {
   k_nearest %>%
-    alply(.margins = 1, 
-          .fun = closest_subsets, 
-          .expand = F, 
-          .parallel = .parallel, 
-          .paropts = .paropts) %>%
-    Reduce(f = set_union, x = .) %>%
-    lapply(FUN = function(x) unlist(as.list(x)))
+    unname %>%
+    alply(.margins = 1, .fun = closest_subsets, .expand = F) %>%
+    unlist(recursive = FALSE) %>%
+    unname %>%
+    unique
 }
 
 
 #' Set of increasing sets from left to right of input vector.
 #' 
-#' Returns a set of the increasing sets of the input vector \code{v},
-#' in the sense that the first set contains the first element of \code{v},
-#' the second set the first and second elements of \code{v}, and so on.
-#' @param v A vector. Meant to represent the \eqn{k} nearest neighbors
+#' Returns a set (list) of the increasing sets (integer vectors) of the input 
+#' vector \code{v}, in the sense that the first set contains the first element 
+#' of \code{v}, the second set the first and second elements of \code{v}, and so 
+#' on.
+#' @param v An integer vector. Meant to represent the \eqn{k} nearest neighbors
 #'    of a location, the first element being the integer identifier of the 
 #'    location itself.
-#' @importFrom sets as.set
+#' @return A list of the same length as the input. The first element of the list
+#'    is v[1], the second is sort(v[1:2]), the third sort(v[1:3]), and so on.
 #' @keywords internal
 closest_subsets <- function(v) {
-  as.set(lapply(lapply(seq_along(v), function(x) v[seq(x)]), as.set))
+  lapply(seq_along(v), function(x) sort(v[seq(x)]))
 }
 
 #' Computes the flexibly shaped zones as in Tango (2005).
@@ -135,8 +133,6 @@ closest_subsets <- function(v) {
 #'    each row being the location itself. Locations should be encoded as 
 #'    integers.
 #' @inheritParams connected_to
-#' @inheritParams plyr::alply
-#' @importFrom sets set_union as.set
 #' @importFrom plyr alply
 #' @importFrom magrittr %>%
 #' @export
@@ -161,19 +157,15 @@ closest_subsets <- function(v) {
 #'                           6,5,4,1,3,2)),
 #'                           nrow = 6, byrow = TRUE)
 #' flexible_zones(nn, A)
-flexible_zones <- function(k_nearest, 
-                           adjacency_matrix,
-                           .parallel = FALSE, 
-                           .paropts = NULL) {
+flexible_zones <- function(k_nearest, adjacency_matrix) {
   k_nearest %>%
-    alply(.margins = 1,
-          .fun = connected_neighbors,
-          adjacency_matrix = adjacency_matrix,
-          .parallel = .parallel,
-          .paropts = .paropts) %>%
-    as.set %>%
-    Reduce(f = set_union, x = .) %>%
-    lapply(FUN = function(x) unlist(as.list(x)))
+    unname %>%
+    alply(.margins = 1, .fun = connected_neighbors, 
+          adjacency_matrix = adjacency_matrix, .expand = F) %>%
+    unlist(recursive = FALSE) %>%
+    unname %>%
+    unique %>%
+    lapply(unlist)
 }
 
 #' Find the connected sets for a location and its \eqn{k} nearest neighbors.

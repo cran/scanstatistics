@@ -4,14 +4,13 @@
 \name{NM_popcas}
 \alias{NM_popcas}
 \title{Population and brain cancer cases in New Mexico counties during 1973--1991.}
-\format{A data table with 608 rows and 4 variables:
+\format{A data frame with 608 rows and 4 variables:
 \describe{
-  \item{year}{The year the cases were recorded. Of class integer.}
-  \item{county}{The name of the county. Of class factor with 32 levels.}
-  \item{population}{The population in that county and year. Of class 
-                    numeric.}
-  \item{count}{The number of brain cancer cases in that county and year. Of
-               class integer.}
+  \item{year}{Integer; the year the cases were recorded.}
+  \item{county}{Character; the name of the county (no spaces).}
+  \item{population}{Integer; the population in that county and year.}
+  \item{count}{Integer; the number of brain cancer cases in that county and 
+               year.}
 }}
 \usage{
 NM_popcas
@@ -25,4 +24,3 @@ year-to-year changes are overly smooth but match the census numbers in the
 three years mentioned.
 }
 \keyword{datasets}
-

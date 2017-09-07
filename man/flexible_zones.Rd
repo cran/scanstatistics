@@ -4,8 +4,7 @@
 \alias{flexible_zones}
 \title{Computes the flexibly shaped zones as in Tango (2005).}
 \usage{
-flexible_zones(k_nearest, adjacency_matrix, .parallel = FALSE,
-  .paropts = NULL)
+flexible_zones(k_nearest, adjacency_matrix)
 }
 \arguments{
 \item{k_nearest}{An integer matrix of the \eqn{k} nearest neighbors for each 
@@ -15,16 +14,6 @@ integers.}
 
 \item{adjacency_matrix}{A boolean matrix, with element \eqn{(i,j)} set 
 to TRUE if location \eqn{j} is adjacent to location \eqn{i}.}
-
-\item{.parallel}{if \code{TRUE}, apply function in parallel, using parallel
-backend provided by foreach}
-
-\item{.paropts}{a list of additional options passed into
-the \code{\link[foreach]{foreach}} function when parallel computation
-is enabled.  This is important if (for example) your code relies on
-external data or packages: use the \code{.export} and \code{.packages}
-arguments to supply them so that all cluster nodes have the correct
-environment set up for computing.}
 }
 \value{
 A list of integer vectors.
@@ -58,4 +47,3 @@ Tango, T. & Takahashi, K. (2005), \emph{A flexibly shaped spatial scan
    statistic for detecting clusters}, International Journal of Health 
    Geographics 4(1).
 }
-

@@ -17,9 +17,9 @@ The \eqn{p}-value or \eqn{p}-values corresponding to the observed
    scan statistic(s).
 }
 \description{
-Given an observed scan statistic \eqn{\lambda^*} and a vector of replicate scan 
-statistics \eqn{\lambda_i}, \eqn{i=1,\ldots,R}, calculate the Monte carlo 
-\eqn{p}-value as
+Given an observed scan statistic \eqn{\lambda^*} and a vector of replicate 
+scan statistics \eqn{\lambda_i}, \eqn{i=1,\ldots,R}, calculate the Monte 
+Carlo \eqn{p}-value as
 \deqn{
  \frac{1 + \sum_{i=1}^R \mathrm{I}(\lambda_i > \lambda^*)}{1 + R}
 }
@@ -27,4 +27,4 @@ The function is vectorized, so multiple \eqn{p}-values can be calculated if
 several scan statistics (e.g. statistics from secondary clusters) are 
 supplied.
 }
-
+\keyword{internal}

@@ -7,14 +7,18 @@
 closest_subsets(v)
 }
 \arguments{
-\item{v}{A vector. Meant to represent the \eqn{k} nearest neighbors
+\item{v}{An integer vector. Meant to represent the \eqn{k} nearest neighbors
 of a location, the first element being the integer identifier of the 
 location itself.}
 }
+\value{
+A list of the same length as the input. The first element of the list
+   is v[1], the second is sort(v[1:2]), the third sort(v[1:3]), and so on.
+}
 \description{
-Returns a set of the increasing sets of the input vector \code{v},
-in the sense that the first set contains the first element of \code{v},
-the second set the first and second elements of \code{v}, and so on.
+Returns a set (list) of the increasing sets (integer vectors) of the input 
+vector \code{v}, in the sense that the first set contains the first element 
+of \code{v}, the second set the first and second elements of \code{v}, and so 
+on.
 }
 \keyword{internal}
-

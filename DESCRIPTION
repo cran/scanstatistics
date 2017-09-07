@@ -4,25 +4,28 @@ Title: Space-Time Anomaly Detection using Scan Statistics
 Description: Detection of anomalous space-time clusters using the scan 
     statistics methodology. Focuses on prospective surveillance of data streams, 
     scanning for clusters with ongoing anomalies. Hypothesis testing is made 
-    possible by the generation of Monte Carlo p-values.
-Version: 0.1.0
-Date: 2016-09-28
-Authors@R: person("Benjamin", "Kjellson", email = "benjak@math.su.se",
+    possible by Monte Carlo simulation.
+Version: 1.0.0
+Date: 2017-09-07
+Authors@R: person("Benjamin", "Allévius", email = "benjak@math.su.se",
   role = c("aut", "cre"))
-Maintainer: Benjamin Kjellson <benjak@math.su.se>
+Maintainer: Benjamin Allévius <benjak@math.su.se>
 Encoding: UTF-8
 License: GPL (>= 3)
 URL: https://github.com/BenjaK/scanstatistics
 BugReports: https://github.com/BenjaK/scanstatistics/issues
-Depends: data.table, R (>= 2.10)
-Imports: gamlss.dist, magrittr, plyr, sets
-Suggests: doParallel, foreach, ggplot2, knitr, MASS, pscl, purrr,
-        reshape2, rmarkdown, sp, testthat
+Depends: R (>= 3.4)
+Imports: dplyr, emdbook, gamlss.dist, ismev, magrittr, methods, plyr,
+        purrr, Rcpp, reliaR, sets, tibble, tidyr
+Suggests: doParallel, foreach, ggplot2, knitr, MASS, pscl, reshape2,
+        rmarkdown, sp, testthat
 VignetteBuilder: knitr
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 ByteCompile: true
-NeedsCompilation: no
-Packaged: 2016-09-29 06:03:25 UTC; benjamin
-Author: Benjamin Kjellson [aut, cre]
+SystemRequirements: C++11
+LinkingTo: Rcpp, RcppArmadillo
+NeedsCompilation: yes
+Packaged: 2017-09-07 10:34:48 UTC; benjamin
+Author: Benjamin Allévius [aut, cre]
 Repository: CRAN
-Date/Publication: 2016-09-29 11:37:32
+Date/Publication: 2017-09-07 11:37:23 UTC

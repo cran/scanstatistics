@@ -4,23 +4,13 @@
 \alias{knn_zones}
 \title{Find the increasing subsets of \eqn{k} nearest neighbors for all locations.}
 \usage{
-knn_zones(k_nearest, .parallel = FALSE, .paropts = NULL)
+knn_zones(k_nearest)
 }
 \arguments{
 \item{k_nearest}{An integer matrix of with \eqn{k} columns and as many rows
 as locations. The first element of each row is the integer encoding the
 location (and equal to the row number); the following elements are the 
 \eqn{k-1} nearest neighbors in ascending order of distance.}
-
-\item{.parallel}{if \code{TRUE}, apply function in parallel, using parallel
-backend provided by foreach}
-
-\item{.paropts}{a list of additional options passed into
-the \code{\link[foreach]{foreach}} function when parallel computation
-is enabled.  This is important if (for example) your code relies on
-external data or packages: use the \code{.export} and \code{.packages}
-arguments to supply them so that all cluster nodes have the correct
-environment set up for computing.}
 }
 \value{
 A list of integer vectors.
@@ -41,4 +31,3 @@ nn <- matrix(c(1L, 2L, 4L, 3L, 5L,
                ncol = 5, byrow = TRUE)
 knn_zones(nn[, 1:3])
 }
-

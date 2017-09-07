@@ -1,48 +1,14 @@
 # Functions in this file:
-#   extract_scanstatistic
-#   extract_mlc
 #   mc_pvalue
-#   scanstatistic_object
 #   print.scanstatistic
 #   score_locations
 #   top_clusters
-#   validate_colnames
-#   validate_values
-#   validate_zones
-#   validate_scan
-
-
-#' Extract value of scan statistic from per-window statistics.
-#' 
-#' This function extracts the value of the scan statistic, which is the maximum
-#' of the statistics calculated for each spatial or space-time window.
-#' @param table A \code{data.table} with a column \code{statistic}, which should
-#'    correspond to the statistic calculated for each spatial or space-time 
-#'    window (given as other columns).
-#' @return The maximum value of the column \code{statistic}.
-#' @keywords internal
-extract_scanstatistic <- function(table) {
-  table[, max(statistic)]
-}
-
-#' Extract the most likely cluster (MLC) and the value of the scans statistic.
-#' 
-#' This function extracts the most likely cluster, which is the spatial or 
-#' spatiotemporal window that corresponds to the scan statistic. It also returns
-#' the value of the scan statistc.
-#' @inheritParams extract_scanstatistic
-#' @return The row of the input table with the highest value of the column 
-#'    \code{statistic}.
-#' @keywords internal
-extract_mlc <- function(table) {
-  table[which.max(statistic), ]
-}
 
 #' Calculate the Monte Carlo \eqn{p}-value for a scan statistic.
 #' 
-#' Given an observed scan statistic \eqn{\lambda^*} and a vector of replicate scan 
-#' statistics \eqn{\lambda_i}, \eqn{i=1,\ldots,R}, calculate the Monte carlo 
-#' \eqn{p}-value as
+#' Given an observed scan statistic \eqn{\lambda^*} and a vector of replicate 
+#' scan statistics \eqn{\lambda_i}, \eqn{i=1,\ldots,R}, calculate the Monte 
+#' Carlo \eqn{p}-value as
 #' \deqn{
 #'  \frac{1 + \sum_{i=1}^R \mathrm{I}(\lambda_i > \lambda^*)}{1 + R}
 #' }
@@ -54,7 +20,7 @@ extract_mlc <- function(table) {
 #' @param replicates A vector of Monte Carlo replicates of the scan statistic.
 #' @return The \eqn{p}-value or \eqn{p}-values corresponding to the observed 
 #'    scan statistic(s).
-#' @export
+#' @keywords internal
 mc_pvalue <- function(observed, replicates) {
   if (length(replicates) == 0) {
     return(NULL)
@@ -69,28 +35,46 @@ mc_pvalue <- function(observed, replicates) {
   }
 }
 
-#' Creates an S3 object of class scanstatistic.
-#' @param observed A data table containing columns location, duration, 
-#'    statistic, and possibly others.
-#' @param simulated A numeric vector of replicated scan statistics.
-#' @param details A list containing details about the data and scan statistic.
+#' Calculate the Gumbel \eqn{p}-value for a scan statistic.
+#' 
+#' Given an observed scan statistic \eqn{\lambda^*} and a vector of replicate 
+#' scan statistics \eqn{\lambda_i}, \eqn{i=1,\ldots,R}, fit a Gumbel 
+#' distribution to the replicates and calculate a \eqn{p}-value for the observed
+#' statistic based on the fitted distribution.
+#' \deqn{
+#'  \frac{1 + \sum_{i=1}^R \mathrm{I}(\lambda_i > \lambda^*)}{1 + R}
+#' }
+#' The function is vectorized, so multiple \eqn{p}-values can be calculated if
+#' several scan statistics (e.g. statistics from secondary clusters) are 
+#' supplied.
+#' @param observed A scalar containing the observed value of the scan statistic,
+#'    or a vector of observed values from secondary clusters.
+#' @param replicates A vector of Monte Carlo replicates of the scan statistic.
+#' @param method Either "ML", for maximum likelihood, or "MoM", for method of 
+#'    moments.
+#' @return The \eqn{p}-value or \eqn{p}-values corresponding to the observed 
+#'    scan statistic(s).
+#' @importFrom ismev gum.fit
+#' @importFrom reliaR pgumbel
 #' @keywords internal
-scanstatistic_object <- function(observed, simulated, details) {
-  statistic <- extract_scanstatistic(observed)
-  pval <- mc_pvalue(statistic, simulated)
-  mlc <- extract_mlc(observed)
+gumbel_pvalue <- function(observed, replicates, method = "ML") {
+  # Fit Gumbel distribution to Monte Carlo replicates
+  gumbel_mu <- NA
+  gumbel_sigma <- NA
+  if (method == "ML") {
+    gum_fit <- gum.fit(replicates, show = FALSE)
+    gumbel_mu <- gum_fit$mle[1]
+    gumbel_sigma <- gum_fit$mle[2]
+  } else {
+    gumbel_sigma <- sqrt(6 * var(replicates) / pi^2)
+    gumbel_mu <- mean(replicates) + digamma(1) * gumbel_sigma
+  }
   
-  structure(list(observed = observed[order(-statistic), ],
-                 replicated = unlist(simulated),
-                 mlc = mlc,
-                 pvalue = pval,
-                 distribution = details$distribution,
-                 type = details$type,
-                 zones = details$zones,
-                 n_locations = length(details$table[, unique(location)]),
-                 n_zones = length(details$zones),
-                 max_duration = details$table[, max(duration)]),
-            class = "scanstatistic")
+  pvalue <- pgumbel(observed, gumbel_mu, gumbel_sigma, lower.tail = FALSE)
+  
+  return(list(pvalue = pvalue, 
+              gumbel_mu = gumbel_mu, 
+              gumbel_sigma = gumbel_sigma))
 }
 
 #' Print a scanstatistic object.
@@ -101,20 +85,34 @@ scanstatistic_object <- function(observed, simulated, details) {
 #' @export
 #' @keywords internal
 print.scanstatistic <- function(x, ...) {
-  cat(paste0(
-    "Data distribution:                ", x$distribution, "\n",
-    "Type of scan statistic:           ", x$type, "\n",
-    "Number of locations considered:   ", x$n_locations, "\n",
-    "Maximum duration considered:      ", x$max_duration, "\n",
-    "Number of spatial zones:          ", x$n_zones, "\n",
-    "Number of Monte Carlo replicates: ", length(x$replicated), "\n",
-    "p-value of observed statistic:    ", ifelse(is.null(x$pvalue), 
-                                                 "NULL",
-                                                 round(x$pvalue, 3)), "\n",
-    "Most likely event duration:       ", x$mlc$duration, "\n",
-    "ID of locations in most likely cluster: ", 
-    toString(get_zone(x$mlc$zone, x$zones)))
+  if (x$type == "Bayesian") {
+    cat(paste0(
+      "Data distribution:                ", x$distribution, "\n",
+      "Type of scan statistic:           ", x$type, "\n",
+      "Setting:                          ", x$setting, "\n",
+      "Number of locations considered:   ", x$n_locations, "\n",
+      "Maximum duration considered:      ", x$max_duration, "\n",
+      "Number of spatial zones:          ", x$n_zones, "\n")
     )
+  } else {
+    cat(paste0(
+      "Data distribution:                ", x$distribution, "\n",
+      "Type of scan statistic:           ", x$type, "\n",
+      "Setting:                          ", x$setting, "\n",
+      "Number of locations considered:   ", x$n_locations, "\n",
+      "Maximum duration considered:      ", x$max_duration, "\n",
+      "Number of spatial zones:          ", x$n_zones, "\n",
+      "Number of Monte Carlo replicates: ", x$n_mcsim, "\n",
+      "Monte Carlo P-value:              ", ifelse(is.null(x$MC_pvalue), 
+                                                   "NULL",
+                                                   round(x$MC_pvalue, 3)), "\n",
+      "Gumbel P-value:                   ", ifelse(is.null(x$Gumbel_pvalue), 
+                                                   "NULL",
+                                                 round(x$Gumbel_pvalue, 3)), "\n",
+      "Most likely event duration:       ", x$MLC$duration, "\n",
+      "ID of locations in most likely cluster: ", toString(x$MLC$locations))
+      )
+  }
   invisible(x)
 }
 
@@ -124,6 +122,7 @@ print.scanstatistic <- function(x, ...) {
 #' space-time window that the location is included in, i.e. average the 
 #' statistic over both zones and the maximum duration.
 #' @param x An object of class \code{scanstatistic}.
+#' @param zones A list of integer vectors.
 #' @return A \code{data.table} with the following columns:
 #'    \describe{
 #'      \item{location}{The locations (as integers).}
@@ -135,32 +134,39 @@ print.scanstatistic <- function(x, ...) {
 #'                   maximum duration.}
 #'      \item{relative_score}{The score divided by the maximum score.}
 #' }
+#' @importFrom magrittr %>%
+#' @importFrom dplyr group_by summarise
+#' @importFrom tibble tibble
 #' @export
 #' @examples
+#' \dontrun{
 #' # Simple example
 #' set.seed(1)
-#' table <- scanstatistics:::create_table(list(location = 1:4, duration = 1:4),
-#'                                         keys = c("location", "duration"))
-#' table[, mu := 3 * location]
-#' table[, count := rpois(.N, mu)]
-#' table[location %in% c(1, 4) & duration < 3, count := rpois(.N, 2 * mu)]
-#' zones <- scanstatistics:::powerset_zones(4)
-#' result <- scan_poisson(table, zones, 100)
-#' score_locations(result)
-score_locations <- function(x) {
-  tab <- data.table(location = seq_len(x$n_locations),
-                    total_score = 0,
-                    n_zones = 0)
-  zone_scores <- x$observed[, .(score = sum(statistic)), by = zone]
-  i <- 1
-  for (z in x$zones) {
-    tab[z, total_score := total_score + zone_scores[z, sum(score)]]
-    tab[z, n_zones := n_zones + 1]
-    i <- i + 1
+#' table <- data.frame(zone = 1:5, duration = 1, score = 5:1)
+#' zones <- list(1:2, 1:3, 2:5, 4:5, c(1, 5))
+#' x <- list(table = table, n_locations = 5, max_duration = 1, n_zones = 5)
+#' score_locations(x, zones)
+#' }
+score_locations <- function(x, zones) {
+  res <- tibble(location = seq_len(x$n_locations),
+                score = 0,
+                n_zones = 0)
+  z_scores <- x$observed %>% 
+    group_by(zone) %>% 
+    summarise(score = sum(score)) %>%
+    arrange(zone)
+  
+  if (nrow(z_scores) != length(zones)) stop("zones don't match x")
+  
+  for (i in seq_along(zones)) {
+    for (location in zones[[i]]) {
+      res[location, ]$score <- res[location, ]$score + z_scores$score[i]
+      res[location, ]$n_zones <- res[location, ]$n_zones + 1
+    }
   }
-  tab[, score := total_score / (n_zones * x$max_duration)]
-  tab[, relative_score := score / max(score)]
-  tab
+  res$score <- res$score / (x$n_zones * x$max_duration)
+  res$relative_score <- res$score / max(res$score)
+  return(res)
 }
 
 #' Get the top (non-overlappig) clusters.
@@ -170,91 +176,42 @@ score_locations <- function(x) {
 #' return the spatially non-overlapping clusters, i.e. those that do not have 
 #' any locations in common.
 #' @param x An object of class scanstatistics.
-#' @param k An integer, the number of clusters to return
+#' @param zones A list of integer vectors.
+#' @param k An integer, the number of clusters to return.
 #' @param overlapping Logical; should the top clusters be allowed to overlap in
 #'    the spatial dimension? The default is \code{FALSE}.
-#' @return A \code{data.table} with at most \eqn{k} rows, with columns 
-#'    \code{zone, duration, statistic}. 
+#' @return A \code{tibble} with at most \eqn{k} rows, with columns 
+#'    \code{zone, duration, score}. 
 #' @export
 #' @examples 
+#' \dontrun{
 #' set.seed(1)
-#' table <- scanstatistics:::create_table(list(location = 1:4, duration = 1:4), 
-#'                                         keys = c("location", "duration"))
-#' table[, mu := 3 * location]
-#' table[, count := rpois(.N, mu)]
-#' table[location %in% c(1, 4) & duration < 3, count := rpois(.N, 2 * mu)]
-#' zones <- scanstatistics:::powerset_zones(4)
-#' result <- scan_poisson(table, zones, 0)
-#' top_clusters(result, k = 4, overlapping = FALSE)
-top_clusters <- function(x, k = 5, overlapping = FALSE) {
+#' table <- data.frame(zone = 1:5, duration = 1, score = 5:1)
+#' zones <- list(1:2, 1:3, 2:5, c(1, 3), 4:5, c(1, 5))
+#' top_clusters(list(table = table), zones, k = 4, overlapping = FALSE)
+#' }
+top_clusters <- function(x, zones, k = 5, overlapping = FALSE) {
   if (overlapping) {
     return(x$observed[seq_len(k), ])
   } else {
-    row_idx <- integer(k)
-    seen_locations <- integer(0)
-    n_added <- 0L
-    i <- 1L
-    while (n_added < k && i < nrow(x$observed)) {
-      zone <- x$observed[i, zone]
-      if (length(intersect(seen_locations, x$zones[[zone]])) == 0) {
+    row_idx <- c(1L, integer(k - 1))
+    seen_locations <- zones[[1]]
+    n_added <- 1L
+    i <- 2L
+    while (n_added < k && i <= nrow(x$observed)) {
+      zone <- x$observed[i, ]$zone
+      if (zone != x$observed[i-1, ]$zone && 
+            length(intersect(seen_locations, zones[[zone]])) == 0) {
+        seen_locations <- c(seen_locations, zones[[zone]])
         n_added <- n_added + 1L
-        seen_locations <- c(seen_locations, x$zones[[zone]])
         row_idx[n_added] <- i
       }
       i <- i + 1L
     }
-    return(x$observed[row_idx[row_idx > 0], ])
+    res <- x$observed[row_idx[row_idx > 0], ]
+    res$MC_pvalue <- mc_pvalue(res$score, x$replicate_statistics$score)
+    res$Gumbel_pvalue <- gumbel_pvalue(res$score, 
+                                       x$replicates$score)$pvalue
+    return(res)
   }
-}
-
-
-#' Check that the input table has the right columns. Raises error if not.
-#' @param table A data.table passed to a scan statistic function.
-#' @param col_names A character vector of column names required.
-#' @keywords internal
-validate_colnames <- function(table, col_names) {
-  test <- col_names %in% names(table)
-  missing_cols <- col_names[!test]
-  if (!all(test)) {
-    stop("Input table lacks column(s) ",
-         paste(paste0("'", missing_cols, "'"), collapse = ", "),
-         ".")
-  }
-}
-
-#' Check that the input table does not contain any missing values.
-#' @param table A data.table passed to a scan statistic function.
-#' @param col_names A character vector of column names; these columns in the
-#'    table must not have any missing values.
-#' @keywords internal
-validate_values <- function(table, col_names) {
-  if (any(is.na(table[, col_names, with = FALSE]))) {
-    stop("The columns ",
-         paste(paste0("'", col_names, "'"), collapse = ", "),
-         " of the input table must not contain any missing values.")
-  }
-}
-
-#' Check that the zones argument is a list of integer or factor vectors.
-#' @param zones Should be a list of integer or factor vectors.
-#' @keywords internal
-validate_zones <- function(zones) {
-  if (class(zones) != "list") {
-    stop("The argument 'zones' must be a list of integer or factor vectors.")
-  }
-  if (!all(vapply(zones, class, character(1)) %in% c("integer", "factor"))) {
-    stop("The argument 'zones' must be a list of integer or factor vectors.")
-  }
-}
-
-#' Check that input to scanstatistic function is valid.
-#' @param table A data.table passed to a scan statistic function.
-#' @param zones Should be a list of integer or factor vectors.
-#' @param col_names A character vector of column names; these columns in the
-#'    table must not have any missing values.
-#' @keywords internal
-validate_scan <- function(table, zones, col_names) {
-  validate_colnames(table, col_names)
-  validate_values(table, col_names)
-  validate_zones(zones)
 }
