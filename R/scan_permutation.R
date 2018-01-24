@@ -1,7 +1,7 @@
-#' Calculate the population-based Poisson scan statistic.
+#' Calculate the space-time permutation scan statistic.
 #' 
-#' Calculate the population-based Poisson scan statistic devised by Kulldorff
-#' (1997, 2001).
+#' Calculate the space-time permutation scan statistic devised by Kulldorff
+#' (2005).
 #' @param counts Either:
 #'    \itemize{
 #'      \item A matrix of observed counts. Rows indicate time and are ordered
@@ -51,12 +51,9 @@
 #'      \item{n_mcsim}{The number of Monte Carlo replicates made.}
 #'    }
 #' @references 
-#'    Kulldorff, M. (1997). \emph{A spatial scan statistic}. Communications in 
-#'    Statistics - Theory and Methods, 26, 1481–1496.
-#'    
-#'    Kulldorff, M. (2001). \emph{Prospective time periodic geographical disease 
-#'    surveillance using a scan statistic}. Journal of the Royal Statistical 
-#'    Society, Series A (Statistics in Society), 164, 61–72.
+#'    Kulldorff, M., Heffernan, R., Hartman, J., Assunção, R. M., Mostashari, F.
+#'    (2005). \emph{A space-time permutation scan statistic for disease outbreak 
+#'    detection}. PLoS Medicine, 2(3), 0216-0224.
 #' @importFrom dplyr arrange
 #' @importFrom magrittr %<>%
 #' @export
@@ -83,17 +80,17 @@
 #' counts[ob_rows, ob_cols] <- matrix(
 #'   rpois(ob_dur * length(ob_cols), 2 * population[ob_rows, ob_cols] / 20), 
 #'   length(ob_rows), length(ob_cols))
-#' res <- scan_pb_poisson(counts = counts,
-#'                        zones = zones,
-#'                        population = population,
-#'                        n_mcsim = 99,
-#'                        max_only = FALSE)
+#' res <- scan_permutation(counts = counts,
+#'                            zones = zones,
+#'                            population = population,
+#'                            n_mcsim = 99,
+#'                            max_only = FALSE)
 #' }
-scan_pb_poisson <- function(counts,
-                            zones,
-                            population = NULL,
-                            n_mcsim = 0,
-                            max_only = FALSE) {
+scan_permutation <- function(counts,
+                                zones,
+                                population = NULL,
+                                n_mcsim = 0,
+                                max_only = FALSE) {
   if (is.data.frame(counts)) {
     # Validate input -----------------------------------------------------------
     if (any(c("time", "location", "count") %notin% names(counts))) {
@@ -138,7 +135,7 @@ scan_pb_poisson <- function(counts,
                num_mcsim = n_mcsim)
   
   # Run analysis on observed counts --------------------------------------------
-  scan <- run_scan(scan_pb_poisson_cpp, args)
+  scan <- run_scan(scan_pb_perm_cpp, args)
   
   MLC_row <- scan$observed[1, ]
   
@@ -151,7 +148,7 @@ scan_pb_poisson <- function(counts,
   
   structure(
     c(list(# General
-      distribution = "Poisson",
+      distribution = "non-parametric",
       type = "population-based",
       setting = "univariate"),
       # MLC + analysis

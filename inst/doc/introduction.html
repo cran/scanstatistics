@@ -12,7 +12,7 @@
 
 <meta name="author" content="Benjamin Allévius" />
 
-<meta name="date" content="2017-09-07" />
+<meta name="date" content="2018-01-24" />
 
 <title>Introduction to scanstatistics</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Introduction to scanstatistics</h1>
 <h4 class="author"><em>Benjamin Allévius</em></h4>
-<h4 class="date"><em>2017-09-07</em></h4>
+<h4 class="date"><em>2018-01-24</em></h4>
 
 
 
@@ -88,10 +88,12 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div id="scan-statistics" class="section level3">
 <h3>Scan statistics</h3>
 <ul>
-<li><strong><code>scan_eb_poisson</code></strong>: computes an  scan statistic for data following a Poisson distribution.</li>
-<li><strong><code>scan_pb_poisson</code></strong>: computes a  scan statistic for data following a Poisson distribution.</li>
-<li><strong><code>scan_eb_negbin</code></strong>: computes an  scan statistic for data following a negative binomial distribution.</li>
-<li><strong><code>scan_eb_zip</code></strong>: computes an  scan statistic for data following a zero-inflated Poisson distribution.</li>
+<li><strong><code>scan_eb_poisson</code></strong>: computes the expectation-based Poisson scan statistic <span class="citation">(Neill et al. 2005)</span>.</li>
+<li><strong><code>scan_pb_poisson</code></strong>: computes the (population-based) space-time scan statistic <span class="citation">(Kulldorff 2001)</span>.</li>
+<li><strong><code>scan_eb_negbin</code></strong>: computes the expectation-based negative binomial scan statistic <span class="citation">(Tango, Takahashi, and Kohriyama 2011)</span>.</li>
+<li><strong><code>scan_eb_zip</code></strong>: computes the expectation-based zero-inflated Poisson scan statistic <span class="citation">(Allévius and Höhle 2017)</span>.</li>
+<li><strong><code>scan_permutation</code></strong>: computes the space-time permutation scan statistic <span class="citation">(Kulldorff et al. 2005)</span>.</li>
+<li><strong><code>scan_bayes_negbin</code></strong>: computes the Bayesian Spatial scan statistic <span class="citation">(Neill, Moore, and Cooper 2006)</span>, extended to a space-time setting.</li>
 </ul>
 </div>
 <div id="zone-creation" class="section level3">
@@ -147,7 +149,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>It should be noted that Cibola county was split from Valencia county in 1981, and cases in Cibola have been counted to Valencia in the data.</p>
 <div id="a-scan-statistic-for-poisson-data" class="section level3">
 <h3>A scan statistic for Poisson data</h3>
-<p>The Poisson distribution is a natural first option when dealing with count data. The <em>scanstatistics</em> package provides the two functions <code>scan_eb_poisson</code> and <code>scan_pb_poisson</code> with this distributional assumption. The first is an expectation-based<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> scan statistic for univariate Poisson-distributed data proposed by <span class="citation">Neill et al. (2005)</span>, and we focus on this one in the example below. The second scan statistic is the population-based scan statistic proposed by <span class="citation">(<span class="citeproc-not-found" data-reference-id="Kulldorff2001"><strong>???</strong></span>)</span>.</p>
+<p>The Poisson distribution is a natural first option when dealing with count data. The <em>scanstatistics</em> package provides the two functions <code>scan_eb_poisson</code> and <code>scan_pb_poisson</code> with this distributional assumption. The first is an expectation-based<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> scan statistic for univariate Poisson-distributed data proposed by <span class="citation">Neill et al. (2005)</span>, and we focus on this one in the example below. The second scan statistic is the population-based scan statistic proposed by <span class="citation">Kulldorff (2001)</span>.</p>
 <div id="theoretical-motivation" class="section level4">
 <h4>Theoretical motivation</h4>
 <p>For the expectation-based Poisson scan statistic, the null hypothesis of no anomaly states that at each location <span class="math inline">\(i\)</span> and duration <span class="math inline">\(t\)</span>, the observed count is Poisson-distributed with expected value <span class="math inline">\(\mu_{it}\)</span>: <span class="math display">\[
@@ -226,7 +228,7 @@ poisson_result &lt;-<span class="st"> </span><span class="kw">scan_eb_poisson</s
 ## Monte Carlo P-value:              0.005
 ## Gumbel P-value:                   0.004
 ## Most likely event duration:       4
-## ID of locations in most likely cluster: 15, 26</code></pre>
+## ID of locations in MLC:           15, 26</code></pre>
 <p>As we can see, the most likely cluster for an anomaly stretches from 1986-1989 and involves the locations numbered 15 and 26, which correspond to the counties</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">counties &lt;-<span class="st"> </span><span class="kw">as.character</span>(NM_geo$county)
 counties[<span class="kw">c</span>(<span class="dv">15</span>, <span class="dv">26</span>)]</code></pre></div>
@@ -293,14 +295,29 @@ top5 %&lt;&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span cla
 <div id="references" class="section level1 unnumbered">
 <h1>References</h1>
 <div id="refs" class="references">
+<div id="ref-Allevius2017">
+<p>Allévius, Benjamin, and Michael Höhle. 2017. “An expectation-based space-time scan statistic for ZIP-distributed data.” Stockholm University.</p>
+</div>
 <div id="ref-rsatscan">
 <p>Kleinman, Ken. 2015. <em>Rsatscan: Tools, Classes, and Methods for Interfacing with Satscan Stand-Alone Software</em>. <a href="https://CRAN.R-project.org/package=rsatscan" class="uri">https://CRAN.R-project.org/package=rsatscan</a>.</p>
+</div>
+<div id="ref-Kulldorff2001">
+<p>Kulldorff, Martin. 2001. “Prospective time periodic geographical disease surveillance using a scan statistic.” <em>Journal of the Royal Statistical Society Series a-Statistics in Society</em> 164: 61–72.</p>
 </div>
 <div id="ref-Kulldorff1998">
 <p>Kulldorff, Martin, William F. Athas, Eric J. Feuer, Barry A. Miller, and Charles R. Key. 1998. “Evaluating Cluster Alarms: A Space-Time Scan Statistic and Brain Cancer in Los Alamos.” <em>American Journal of Public Health</em> 88 (9): 1377–80.</p>
 </div>
+<div id="ref-Kulldorff2005">
+<p>Kulldorff, Martin, Richard Heffernan, Jessica Hartman, Renato M. Assunção, and Farzad Mostashari. 2005. “A space-time permutation scan statistic for disease outbreak detection” 2 (3): 0216–24.</p>
+</div>
+<div id="ref-Neill2006">
+<p>Neill, Daniel B., Andrew W. Moore, and Gregory F. Cooper. 2006. “A Bayesian Spatial Scan Statistic.” <em>Advances in Neural Information Processing Systems</em> 18: 1003.</p>
+</div>
 <div id="ref-Neill2005">
 <p>Neill, Daniel B., Andrew W. Moore, Maheshkumar Sabhnani, and Kenny Daniel. 2005. “Detection of Emerging Space-Time Clusters.” In <em>Proceedings of the Eleventh Acm Sigkdd International Conference on Knowledge Discovery in Data Mining</em>, 218–27. ACM.</p>
+</div>
+<div id="ref-Tango2011">
+<p>Tango, Toshiro, Kunihiko Takahashi, and Kazuaki Kohriyama. 2011. “A Space-Time Scan Statistic for Detecting Emerging Outbreaks.” <em>Biometrics</em> 67 (1): 106–15.</p>
 </div>
 </div>
 </div>

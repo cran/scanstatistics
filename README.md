@@ -49,10 +49,12 @@ Main functions
 
 ### Scan statistics
 
--   **`scan_eb_poisson`**: computes an scan statistic for data following a Poisson distribution.
--   **`scan_pb_poisson`**: computes a scan statistic for data following a Poisson distribution.
--   **`scan_eb_negbin`**: computes an scan statistic for data following a negative binomial distribution.
--   **`scan_eb_zip`**: computes an scan statistic for data following a zero-inflated Poisson distribution.
+-   **`scan_eb_poisson`**: computes the expectation-based Poisson scan statistic (Neill 2005).
+-   **`scan_pb_poisson`**: computes the (population-based) space-time scan statistic (Kulldorff 2001).
+-   **`scan_eb_negbin`**: computes the expectation-based negative binomial scan statistic (Tango et al. 2011).
+-   **`scan_eb_zip`**: computes the expectation-based zero-inflated Poisson scan statistic (Allévius & Höhle 2017).
+-   **`scan_permutation`**: computes the space-time permutation scan statistic (Kulldorff et al. 2005).
+-   **`scan_bayes_negbin`**: computes the Bayesian Spatial scan statistic (Neill 2006), extended to a space-time setting.
 
 ### Zone creation
 
@@ -192,7 +194,7 @@ print(poisson_result)
 #> Monte Carlo P-value:              0.005
 #> Gumbel P-value:                   0.004
 #> Most likely event duration:       4
-#> ID of locations in most likely cluster: 15, 26
+#> ID of locations in MLC:           15, 26
 ```
 
 As we can see, the most likely cluster for an anomaly stretches from 1986-1989 and involves the locations numbered 15 and 26, which correspond to the counties
@@ -274,14 +276,20 @@ If you think this package lacks some functionality, or that something needs bett
 References
 ==========
 
-Kjellson, Benjamin. 2015. “Spatiotemporal Outbreak Detection: A Scan Statistic Based on the Zero-Inflated Poisson Distribution.” Master’s thesis, Sweden: Stockholm University, Division of Mathematical Statistics.
+Allévius, B., M. Höhle (2017): *An expectation-based space-time scan statistic for ZIP-distributed data*, (under review).
 
-Kleinman, Ken. 2015. Rsatscan: Tools, Classes, and Methods for Interfacing with SaTScan Stand-Alone Software. <https://CRAN.R-project.org/package=rsatscan>.
+Kleinman, K. (2015): *Rsatscan: Tools, Classes, and Methods for Interfacing with SaTScan Stand-Alone Software*, <https://CRAN.R-project.org/package=rsatscan>.
 
-Kulldorff, Martin, William F. Athas, Eric J. Feuer, Barry A. Miller, and Charles R. Key. 1998. “Evaluating Cluster Alarms: A Space-Time Scan Statistic and Brain Cancer in Los Alamos.” American Journal of Public Health 88 (9): 1377–80.
+Kulldorff, M., Athas, W. F., Feuer, E. J., Miller, B. A., Key, C. R. (1998): *Evaluating Cluster Alarms: A Space-Time Scan Statistic and Brain Cancer in Los Alamos*, American Journal of Public Health 88 (9), 1377–80.
 
-Neill, Daniel B., Andrew W. Moore, Maheshkumar Sabhnani, and Kenny Daniel. 2005. “Detection of Emerging Space-Time Clusters.” In Proceedings of the Eleventh ACM SIGKDD International Conference on Knowledge Discovery in Data Mining, 218–27. ACM.
+Kulldorff, M. (2001), *Prospective time periodic geographical disease surveillance using a scan statistic*, Journal of the Royal Statistical Society, Series A (Statistics in Society), 164, 61–72.
 
-Tango, Toshiro, Kunihiko Takahashi, and Kazuaki Kohriyama. 2011. “A Space-Time Scan Statistic for Detecting Emerging Outbreaks.” Biometrics 67 (1): 106–15.
+Kulldorff, M., Heffernan, R., Hartman, J., Assunção, R. M., Mostashari, F. (2005): *A space-time permutation scan statistic for disease outbreak detection*, PLoS Medicine, 2 (3), 0216-0224.
+
+Neill, D. B., Moore, A. W., Sabhnani, M., Daniel, K. (2005): *Detection of Emerging Space-Time Clusters*, In Proceedings of the Eleventh ACM SIGKDD International Conference on Knowledge Discovery in Data Mining, 218–27. ACM.
+
+Neill, D. B., Moore, A. W., Cooper, G. F. (2006): *A Bayesian Spatial Scan Statistic*, Advances in Neural Information Processing Systems 18: Proceedings of the 2005 Conference.
+
+Tango, T., Takahashi, K. Kohriyama, K. (2011), *A Space-Time Scan Statistic for Detecting Emerging Outbreaks*, Biometrics 67 (1), 106–15.
 
 [1] Expectation-based scan statistics use past non-anomalous data to estimate distribution parameters, and then compares observed cluster counts from the time period of interest to these estimates. In contrast, *population-based* scan statistics compare counts in a cluster to those outside, only using data from the period of interest, and does so conditional on the observed total count.
