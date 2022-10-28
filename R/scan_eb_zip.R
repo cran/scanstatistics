@@ -37,6 +37,8 @@
 #'    columns in \code{counts}.
 #' @param n_mcsim A non-negative integer; the number of replicate scan
 #'    statistics to generate in order to calculate a \eqn{P}-value.
+#' @param gumbel Logical: should a Gumbel P-value be calculated? Default is
+#'    \code{FALSE}.
 #' @param max_only Boolean. If \code{FALSE} (default) the log-likelihood ratio
 #'    statistic for each zone and duration is returned. If \code{TRUE}, only the
 #'    largest such statistic (i.e. the scan statistic) is returned, along with
@@ -108,35 +110,36 @@
 #' @importFrom magrittr %<>%
 #' @export
 #' @examples
-#' \dontrun{
-#' set.seed(1)
-#' # Create location coordinates, calculate nearest neighbors, and create zones
-#' n_locs <- 50
-#' max_duration <- 5
-#' n_total <- n_locs * max_duration
-#' geo <- matrix(rnorm(n_locs * 2), n_locs, 2)
-#' knn_mat <- coords_to_knn(geo, 15)
-#' zones <- knn_zones(knn_mat)
-#'
-#' # Simulate data
-#' baselines <- matrix(rexp(n_total, 1/5), max_duration, n_locs)
-#' probs <- matrix(runif(n_total) / 4, max_duration, n_locs)
-#' counts <- gamlss.dist::rZIP(n_total, baselines, probs)
-#'
-#' # Inject outbreak/event/anomaly
-#' ob_dur <- 3
-#' ob_cols <- zones[[10]]
-#' ob_rows <- max_duration + 1 - seq_len(ob_dur)
-#' counts[ob_rows, ob_cols] <- gamlss.dist::rZIP(
-#'   ob_dur * length(ob_cols), 2 * baselines[ob_rows, ob_cols], 
-#'   probs[ob_rows, ob_cols])
-#' res <- scan_eb_zip(counts = counts,
-#'                    zones = zones,
-#'                    baselines = baselines,
-#'                    probs = probs,
-#'                    n_mcsim = 99,
-#'                    max_only = FALSE,
-#'                    rel_tol = 1e-3)
+#' if (require("gamlss.dist")) {
+#'   set.seed(1)
+#'   # Create location coordinates, calculate nearest neighbors, and create zones
+#'   n_locs <- 50
+#'   max_duration <- 5
+#'   n_total <- n_locs * max_duration
+#'   geo <- matrix(rnorm(n_locs * 2), n_locs, 2)
+#'   knn_mat <- coords_to_knn(geo, 15)
+#'   zones <- knn_zones(knn_mat)
+#'   
+#'   # Simulate data
+#'   baselines <- matrix(rexp(n_total, 1/5), max_duration, n_locs)
+#'   probs <- matrix(runif(n_total) / 4, max_duration, n_locs)
+#'   counts <- matrix(gamlss.dist::rZIP(n_total, baselines, probs), 
+#'                    max_duration, n_locs)
+#'   
+#'   # Inject outbreak/event/anomaly
+#'   ob_dur <- 3
+#'   ob_cols <- zones[[10]]
+#'   ob_rows <- max_duration + 1 - seq_len(ob_dur)
+#'   counts[ob_rows, ob_cols] <- gamlss.dist::rZIP(
+#'     ob_dur * length(ob_cols), 2 * baselines[ob_rows, ob_cols],
+#'     probs[ob_rows, ob_cols])
+#'   res <- scan_eb_zip(counts = counts,
+#'                      zones = zones,
+#'                      baselines = baselines,
+#'                      probs = probs,
+#'                      n_mcsim = 9,
+#'                      max_only = FALSE,
+#'                      rel_tol = 1e-3)
 #' }
 scan_eb_zip <- function(counts,
                         zones,
@@ -144,6 +147,7 @@ scan_eb_zip <- function(counts,
                         probs = NULL,
                         population = NULL,
                         n_mcsim = 0,
+                        gumbel = FALSE,
                         max_only = FALSE,
                         rel_tol = 1e-3) {
   if (is.data.frame(counts)) {
@@ -198,7 +202,10 @@ scan_eb_zip <- function(counts,
   # Reverse time order: most recent first --------------------------------------
   counts <- flipud(counts)
   baselines <- flipud(baselines)
-  probs <- flipud(probs)
+  
+  if (!is.null(population)) {
+    population <- flipud(population)
+  }
   
 
   # Prepare zone arguments for C++ ---------------------------------------------
@@ -212,7 +219,7 @@ scan_eb_zip <- function(counts,
                num_mcsim = n_mcsim)
 
   # Run analysis on observed counts --------------------------------------------
-  scan <- run_scan(scan_eb_zip_cpp, args)
+  scan <- run_scan(scan_eb_zip_cpp, args, gumbel)
 
   MLC_row <- scan$observed[1, ]
   

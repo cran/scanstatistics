@@ -30,6 +30,8 @@
 #'    relative risk is assumed to increase with the duration of the outbreak.
 #' @param n_mcsim A non-negative integer; the number of replicate scan
 #'    statistics to generate in order to calculate a \eqn{P}-value.
+#' @param gumbel Logical: should a Gumbel P-value be calculated? Default is
+#'    \code{FALSE}.
 #' @param max_only Boolean. If \code{FALSE} (default) the statistic calculated
 #'    for each zone and duration is returned. If \code{TRUE}, only the largest 
 #'    such statistic (i.e. the scan statistic) is returned, along with the 
@@ -64,7 +66,6 @@
 #' @importFrom magrittr %<>%
 #' @export
 #' @examples
-#' \dontrun{
 #' set.seed(1)
 #' # Create location coordinates, calculate nearest neighbors, and create zones
 #' n_locs <- 50
@@ -96,13 +97,13 @@
 #'                       type = "hotspot",
 #'                       n_mcsim = 99,
 #'                       max_only = FALSE)
-#' }
 scan_eb_negbin <- function(counts,
                            zones,
-                           baselines,
+                           baselines = NULL,
                            thetas = 1,
                            type = c("hotspot", "emerging"),
                            n_mcsim = 0,
+                           gumbel = FALSE,
                            max_only = FALSE) {
   if (is.data.frame(counts)) {
     # Validate input -----------------------------------------------------------
@@ -122,7 +123,7 @@ scan_eb_negbin <- function(counts,
   if (any(as.vector(counts) != as.integer(counts))) {
     stop("counts must be integer")
   }
-  if (any(baselines <= 0)) stop("baselines must be positive")
+  if (!is.null(baselines) && any(baselines <= 0)) stop("baselines must be positive")
   if (any(thetas <= 0)) stop("thetas must be positive")
 
   # Reshape arguments into matrices --------------------------------------------
@@ -160,7 +161,7 @@ scan_eb_negbin <- function(counts,
                score_hotspot = type[1] == "hotspot")
 
   # Run analysis on observed counts --------------------------------------------
-  scan <- run_scan(scan_eb_negbin_cpp, args)
+  scan <- run_scan(scan_eb_negbin_cpp, args, gumbel)
   
   MLC_row <- scan$observed[1, ]
   

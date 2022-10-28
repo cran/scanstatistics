@@ -22,6 +22,8 @@
 #'    columns in \code{counts} (the number of locations).
 #' @param n_mcsim A non-negative integer; the number of replicate scan
 #'    statistics to generate in order to calculate a P-value.
+#' @param gumbel Logical: should a Gumbel P-value be calculated? Default is
+#'    \code{FALSE}.
 #' @param max_only Boolean. If \code{FALSE} (default) the log-likelihood ratio
 #'    statistic for each zone and duration is returned. If \code{TRUE}, only the
 #'    largest such statistic (i.e. the scan statistic) is returned, along with
@@ -61,7 +63,6 @@
 #' @importFrom magrittr %<>%
 #' @export
 #' @examples
-#' \dontrun{
 #' set.seed(1)
 #' # Create location coordinates, calculate nearest neighbors, and create zones
 #' n_locs <- 50
@@ -88,11 +89,12 @@
 #'                        population = population,
 #'                        n_mcsim = 99,
 #'                        max_only = FALSE)
-#' }
+
 scan_pb_poisson <- function(counts,
                             zones,
                             population = NULL,
                             n_mcsim = 0,
+                            gumbel = FALSE,
                             max_only = FALSE) {
   if (is.data.frame(counts)) {
     # Validate input -----------------------------------------------------------
@@ -126,8 +128,11 @@ scan_pb_poisson <- function(counts,
   
   # Reverse time order: most recent first --------------------------------------
   counts <- flipud(counts)
-  population <- flipud(population)
   baselines <- flipud(baselines)
+  
+  if (!is.null(population)) {
+    population <- flipud(population)
+  }
   
   # Prepare zone arguments for C++ ---------------------------------------------
   args <- list(counts = counts, 
@@ -138,7 +143,7 @@ scan_pb_poisson <- function(counts,
                num_mcsim = n_mcsim)
   
   # Run analysis on observed counts --------------------------------------------
-  scan <- run_scan(scan_pb_poisson_cpp, args)
+  scan <- run_scan(scan_pb_poisson_cpp, args, gumbel)
   
   MLC_row <- scan$observed[1, ]
   

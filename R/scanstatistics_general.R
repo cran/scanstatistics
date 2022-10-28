@@ -20,7 +20,7 @@
 #' @param replicates A vector of Monte Carlo replicates of the scan statistic.
 #' @return The \eqn{p}-value or \eqn{p}-values corresponding to the observed 
 #'    scan statistic(s).
-#' @keywords internal
+#' @export
 mc_pvalue <- function(observed, replicates) {
   if (length(replicates) == 0) {
     return(NULL)
@@ -52,17 +52,21 @@ mc_pvalue <- function(observed, replicates) {
 #' @param replicates A vector of Monte Carlo replicates of the scan statistic.
 #' @param method Either "ML", for maximum likelihood, or "MoM", for method of 
 #'    moments.
+#' @param ... Additional arguments passed to \code{ismev::gum.fit}, which 
+#'    may include arguments passed along further to \code{optim}.
 #' @return The \eqn{p}-value or \eqn{p}-values corresponding to the observed 
 #'    scan statistic(s).
 #' @importFrom ismev gum.fit
-#' @importFrom reliaR pgumbel
-#' @keywords internal
-gumbel_pvalue <- function(observed, replicates, method = "ML") {
+#' @export
+gumbel_pvalue <- function(observed, replicates, method = "ML", ...) {
+  if (length(replicates) < 2) {
+    stop("Need at least 2 observations to fit Gumbel distribution.")
+  }
   # Fit Gumbel distribution to Monte Carlo replicates
   gumbel_mu <- NA
   gumbel_sigma <- NA
   if (method == "ML") {
-    gum_fit <- gum.fit(replicates, show = FALSE)
+    gum_fit <- gum.fit(replicates, show = FALSE, ...)
     gumbel_mu <- gum_fit$mle[1]
     gumbel_sigma <- gum_fit$mle[2]
   } else {
@@ -83,6 +87,7 @@ gumbel_pvalue <- function(observed, replicates, method = "ML") {
 #' @param x A an object of class \code{scanstatistic}.
 #' @param ... Further arguments passed to or from other methods.
 #' @export
+#' @return x, invisibly
 #' @keywords internal
 print.scanstatistic <- function(x, ...) {
   if (x$type == "Bayesian") {
@@ -96,7 +101,7 @@ print.scanstatistic <- function(x, ...) {
       "Overall event probability:        ", x$posteriors$alt_posterior, "\n",
       "Probability of event in MLC:      ", round(x$MLC$posterior, 3), "\n",
       "Most likely event duration:       ", x$MLC$duration, "\n",
-      "ID of locations in MLC:           ", toString(x$MLC$locations))
+      "ID of locations in MLC:           ", toString(x$MLC$locations), "\n")
     )
   } else {
     cat(paste0(
@@ -114,7 +119,7 @@ print.scanstatistic <- function(x, ...) {
                                                    "NULL",
                                                  round(x$Gumbel_pvalue, 3)), "\n",
       "Most likely event duration:       ", x$MLC$duration, "\n",
-      "ID of locations in MLC:           ", toString(x$MLC$locations))
+      "ID of locations in MLC:           ", toString(x$MLC$locations), "\n")
       )
   }
   invisible(x)
@@ -143,14 +148,13 @@ print.scanstatistic <- function(x, ...) {
 #' @importFrom tibble tibble
 #' @export
 #' @examples
-#' \dontrun{
 #' # Simple example
 #' set.seed(1)
 #' table <- data.frame(zone = 1:5, duration = 1, score = 5:1)
 #' zones <- list(1:2, 1:3, 2:5, 4:5, c(1, 5))
-#' x <- list(table = table, n_locations = 5, max_duration = 1, n_zones = 5)
+#' x <- list(observed = table, n_locations = 5, max_duration = 1, n_zones = 5)
 #' score_locations(x, zones)
-#' }
+
 score_locations <- function(x, zones) {
   res <- tibble(location = seq_len(x$n_locations),
                 score = 0,
@@ -184,22 +188,29 @@ score_locations <- function(x, zones) {
 #' @param k An integer, the number of clusters to return.
 #' @param overlapping Logical; should the top clusters be allowed to overlap in
 #'    the spatial dimension? The default is \code{FALSE}.
-#' @return A \code{tibble} with at most \eqn{k} rows, with columns 
-#'    \code{zone, duration, score}. 
+#' @param gumbel Logical; should a Gumbel P-value be calculated? The default is 
+#'    \code{FALSE}.
+#' @param alpha A significance level, which if not \code{NULL} will be used to
+#'    calculate a critical value for the statistics in the table.
+#' @param ... Parameters passed to \code{\link[stats]{quantile}}.
+#' @return A data frame with at most \eqn{k} rows, with columns 
+#'    \code{zone, duration, score} and possibly \code{MC_pvalue, Gumbel_pvalue}
+#'    and \code{critical_value}. 
 #' @export
 #' @examples 
-#' \dontrun{
 #' set.seed(1)
-#' table <- data.frame(zone = 1:5, duration = 1, score = 5:1)
+#' counts <- matrix(rpois(15, 3), 3, 5)
 #' zones <- list(1:2, 1:3, 2:5, c(1, 3), 4:5, c(1, 5))
-#' top_clusters(list(table = table), zones, k = 4, overlapping = FALSE)
-#' }
-top_clusters <- function(x, zones, k = 5, overlapping = FALSE) {
+#' scanres <- scan_permutation(counts, zones, n_mcsim = 5)
+#' top_clusters(scanres, zones, k = 4, overlapping = FALSE)
+top_clusters <- function(x, zones, k = 5, overlapping = FALSE, gumbel = FALSE,
+                         alpha = NULL, ...) {
+  k <- min(k, nrow(x$observed))
   if (overlapping) {
     return(x$observed[seq_len(k), ])
   } else {
     row_idx <- c(1L, integer(k - 1))
-    seen_locations <- zones[[1]]
+    seen_locations <- zones[[x$observed[1,]$zone]]
     n_added <- 1L
     i <- 2L
     while (n_added < k && i <= nrow(x$observed)) {
@@ -213,9 +224,18 @@ top_clusters <- function(x, zones, k = 5, overlapping = FALSE) {
       i <- i + 1L
     }
     res <- x$observed[row_idx[row_idx > 0], ]
-    res$MC_pvalue <- mc_pvalue(res$score, x$replicate_statistics$score)
-    res$Gumbel_pvalue <- gumbel_pvalue(res$score, 
-                                       x$replicates$score)$pvalue
+    
+    if (nrow(x$replicates) > 0) {
+      res$MC_pvalue <- mc_pvalue(res$score, x$replicates$score)
+      
+      if (gumbel) {
+        res$Gumbel_pvalue <- gumbel_pvalue(res$score, 
+                                           x$replicates$score)$pvalue
+      }
+      if (!is.null(alpha) && alpha >= 0 && alpha <= 1) {
+        res$critical_value <- stats::quantile(x$replicates$score, 1 - alpha)
+      }
+    }
     return(res)
   }
 }

@@ -4,8 +4,16 @@
 \alias{scan_eb_negbin}
 \title{Calculate the expectation-based negative binomial scan statistic.}
 \usage{
-scan_eb_negbin(counts, zones, baselines, thetas = 1, type = c("hotspot",
-  "emerging"), n_mcsim = 0, max_only = FALSE)
+scan_eb_negbin(
+  counts,
+  zones,
+  baselines = NULL,
+  thetas = 1,
+  type = c("hotspot", "emerging"),
+  n_mcsim = 0,
+  gumbel = FALSE,
+  max_only = FALSE
+)
 }
 \arguments{
 \item{counts}{Either:
@@ -42,6 +50,9 @@ relative risk is assumed to increase with the duration of the outbreak.}
 \item{n_mcsim}{A non-negative integer; the number of replicate scan
 statistics to generate in order to calculate a \eqn{P}-value.}
 
+\item{gumbel}{Logical: should a Gumbel P-value be calculated? Default is
+\code{FALSE}.}
+
 \item{max_only}{Boolean. If \code{FALSE} (default) the statistic calculated
 for each zone and duration is returned. If \code{TRUE}, only the largest 
 such statistic (i.e. the scan statistic) is returned, along with the 
@@ -77,7 +88,6 @@ Calculate the expectation-based negative binomial scan statistic devised by
 Tango et al. (2011).
 }
 \examples{
-\dontrun{
 set.seed(1)
 # Create location coordinates, calculate nearest neighbors, and create zones
 n_locs <- 50
@@ -109,7 +119,6 @@ res <- scan_eb_negbin(counts = counts,
                       type = "hotspot",
                       n_mcsim = 99,
                       max_only = FALSE)
-}
 }
 \references{
 Tango, T., Takahashi, K. & Kohriyama, K. (2011), A space-time scan

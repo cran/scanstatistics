@@ -1,7 +1,7 @@
-## ---- eval=TRUE, echo=FALSE----------------------------------------------
+## ---- eval=TRUE, echo=FALSE---------------------------------------------------
 knitr::opts_chunk$set(fig.width=7.15, fig.height=5)
 
-## ----newmexico_map, eval=TRUE--------------------------------------------
+## ----newmexico_map, eval=TRUE-------------------------------------------------
 library(scanstatistics)
 library(ggplot2)
 
@@ -18,17 +18,17 @@ ggplot() +
             mapping = aes(x = center_long, y = center_lat, label = county)) +
   ggtitle("Counties of New Mexico")
 
-## ----load_count_data-----------------------------------------------------
+## ----load_count_data----------------------------------------------------------
 data(NM_popcas)
 head(NM_popcas)
 
-## ----get_counts----------------------------------------------------------
+## ----get_counts---------------------------------------------------------------
 library(dplyr)
 counts <- NM_popcas %>% 
   filter(year >= 1986 & year < 1990) %>%
   df_to_matrix(time_col = "year", location_col = "county", value_col = "count")
 
-## ----get_zones, eval=TRUE------------------------------------------------
+## ----get_zones, eval=TRUE-----------------------------------------------------
 library(sp)
 library(magrittr)
 
@@ -42,7 +42,7 @@ zones <- NM_geo %>%
   dist_to_knn(k = 15) %>%
   knn_zones
 
-## ----fit_baselines, eval=TRUE--------------------------------------------
+## ----fit_baselines, eval=TRUE-------------------------------------------------
 mod <- glm(count ~ offset(log(population)) + 1 + I(year - 1985),
            family = poisson(link = "log"),
            data = NM_popcas %>% filter(year < 1986))
@@ -52,7 +52,7 @@ ebp_baselines <- NM_popcas %>%
   mutate(mu = predict(mod, newdata = ., type = "response")) %>%
   df_to_matrix(value_col = "mu")
 
-## ----run_ebp, eval=TRUE--------------------------------------------------
+## ----run_ebp, eval=TRUE-------------------------------------------------------
 set.seed(1)
 poisson_result <- scan_eb_poisson(counts = counts, 
                                   zones = zones, 
@@ -60,11 +60,11 @@ poisson_result <- scan_eb_poisson(counts = counts,
                                   n_mcsim = 999)
 print(poisson_result)
 
-## ----show_MLC, eval=TRUE, comment=NA-------------------------------------
+## ----show_MLC, eval=TRUE, comment=NA------------------------------------------
 counties <- as.character(NM_geo$county)
 counties[c(15, 26)]
 
-## ----county_scores, eval=TRUE--------------------------------------------
+## ----county_scores, eval=TRUE-------------------------------------------------
 # Calculate scores and add column with county names
 county_scores <- score_locations(poisson_result, zones)
 county_scores %<>% mutate(county = factor(counties[-length(counties)], 
@@ -93,7 +93,7 @@ ggplot() +
             alpha = 0.5) +
   ggtitle("County scores")
 
-## ----top_counties, eval=TRUE---------------------------------------------
+## ----top_counties, eval=TRUE--------------------------------------------------
 top5 <- top_clusters(poisson_result, zones, k = 5, overlapping = FALSE)
 
 # Find the counties corresponding to the spatial zones of the 5 clusters.

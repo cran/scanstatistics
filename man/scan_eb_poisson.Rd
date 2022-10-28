@@ -4,8 +4,15 @@
 \alias{scan_eb_poisson}
 \title{Calculate the expectation-based Poisson scan statistic.}
 \usage{
-scan_eb_poisson(counts, zones, baselines = NULL, population = NULL,
-  n_mcsim = 0, max_only = FALSE)
+scan_eb_poisson(
+  counts,
+  zones,
+  baselines = NULL,
+  population = NULL,
+  n_mcsim = 0,
+  gumbel = FALSE,
+  max_only = FALSE
+)
 }
 \arguments{
 \item{counts}{Either:
@@ -39,6 +46,9 @@ columns in \code{counts}.}
 
 \item{n_mcsim}{A non-negative integer; the number of replicate scan
 statistics to generate in order to calculate a \eqn{P}-value.}
+
+\item{gumbel}{Logical: should a Gumbel P-value be calculated? Default is
+\code{FALSE}.}
 
 \item{max_only}{Boolean. If \code{FALSE} (default) the log-likelihood ratio
 statistic for each zone and duration is returned. If \code{TRUE}, only the
@@ -75,7 +85,6 @@ Calculate the expectation-based Poisson scan statistic devised by Neill et
 al. (2005).
 }
 \examples{
-\dontrun{
 set.seed(1)
 # Create location coordinates, calculate nearest neighbors, and create zones
 n_locs <- 50
@@ -101,7 +110,6 @@ res <- scan_eb_poisson(counts = counts,
                        baselines = baselines,
                        n_mcsim = 99,
                        max_only = FALSE)
-}
 }
 \references{
 Neill, D. B., Moore, A. W., Sabhnani, M. and Daniel, K. (2005). 
