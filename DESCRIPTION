@@ -5,8 +5,8 @@ Description: Detection of anomalous space-time clusters using the scan
   statistics methodology. Focuses on prospective surveillance of data streams, 
   scanning for clusters with ongoing anomalies. Hypothesis testing is made 
   possible by Monte Carlo simulation. Allévius (2018) <doi:10.21105/joss.00515>.
-Version: 1.1.0
-Date: 2022-10-24
+Version: 1.1.1
+Date: 2023-01-25
 Authors@R: c(
   person("Benjamin", "Allévius", email = "benjak@math.su.se", role = "aut"),
   person("Paul", "Romer Present", email = "paul.romerpresent@fastmail.fm", role = c("ctb", "cre"))
@@ -26,9 +26,9 @@ SystemRequirements: C++11
 LinkingTo: Rcpp, RcppArmadillo
 LazyData: true
 NeedsCompilation: yes
-Packaged: 2022-10-27 17:12:42 UTC; promerpr
+Packaged: 2023-01-25 19:57:56 UTC; promerpr
 Author: Benjamin Allévius [aut],
   Paul Romer Present [ctb, cre]
 Maintainer: Paul Romer Present <paul.romerpresent@fastmail.fm>
 Repository: CRAN
-Date/Publication: 2022-10-28 11:45:05 UTC
+Date/Publication: 2023-01-26 12:40:02 UTC

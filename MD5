@@ -1,4 +1,4 @@
-470b450999e0a4a9f8d3f4d9a7b6da22 *DESCRIPTION
+1616fbf68fc07bba9920bb8ffd4a4923 *DESCRIPTION
 8e5233d5b341a290bf28e91b75cbe473 *NAMESPACE
 ae503621f210a33aaf58a5dea64ba347 *NEWS.md
 6b057fa03a292cf9206f583e1286b4ea *R/RcppExports.R
@@ -24,7 +24,7 @@ c6f81045c57164c7cb8df76e9505ddc3 *build/vignette.rds
 81bc3d0b25bf13b3c16a502c57904a12 *inst/CITATION
 c9e91a4f505ec806d5ddf2c9decd5b2b *inst/doc/introduction.R
 6551b6ade3b82db5ddc97942e42ae268 *inst/doc/introduction.Rmd
-2fc652636555e9b4bd09d4c04747152a *inst/doc/introduction.html
+1137ee390b647897b5b9fcc425e6c149 *inst/doc/introduction.html
 420a7728e91c566d92178860bc9d043a *inst/image/county_scores-1.png
 91a78875879fac98983372cf8cfb8a92 *inst/image/newmexico_map-1.png
 766fe58374189d514d485e2512609632 *man/NM_geo.Rd
@@ -72,7 +72,7 @@ baa0020a3d090a31bcc358b70cd21d82 *man/scanstatistics.Rd
 426bcd3b720dc36e6c04ab7cd2583e67 *src/BGPscan.h
 5c3b33cef14de7c49faa049123976b93 *src/EBNBscan.h
 36f43435edf892c7b8a4ffd7d4a2dd74 *src/EBPOIscan.h
-1b50c1e6dfecfabec5827cbdc5980275 *src/EBZIPscan.h
+9633aa1f44050a32394d48c8c4d2e5d3 *src/EBZIPscan.h
 cd10dde8fe0313bc82534d8cc25731e2 *src/FastSubsetScan.h
 b4554e62176fc9dc69181c00855f3a03 *src/Makevars.win
 15729f921d5542015f4814e155d9b049 *src/PBPERMscan.h
@@ -98,7 +98,6 @@ cc328d895c0f3b8b4deff5f3373992b8 *src/scan_pb_perm.h
 3d58d78898aa8c73c30815fdb0e8bd2e *src/scan_utility.cpp
 84d2a02dbb0ce22d26214dc2998f8ec7 *src/scan_utility.h
 a590b29d297df473d5822761505d68e6 *tests/testthat.R
-fa4ea72fa65a1df89cf8f2ecb64adda1 *tests/testthat/test-pgumbel.R
 b7687cf6469365fe2d28aa3d8466b7bc *tests/testthat/test_baseline_estimation.R
 c6af2de73b8ab3065ef51c4ec2b3cfc3 *tests/testthat/test_fss_exponential_family.R
 de8f03b3c6342349544bfbc1a10b9b46 *tests/testthat/test_fss_utility_functions.R
