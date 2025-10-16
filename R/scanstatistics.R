@@ -10,9 +10,7 @@
 #' functions for univariate space-time data have a name that begins with 
 #' \code{scan_} and functions for multivariate space-time data have a name that
 #' begins with \code{mscan_}.
-#' @docType package
-#' @name scanstatistics
-NULL
+"_PACKAGE"
 
 #' @useDynLib scanstatistics, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
